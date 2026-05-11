@@ -43,7 +43,7 @@ HEADERS = {'User-Agent': USER_AGENT}
 # which exhausts file descriptors under load (OSError: [Errno 24]).
 _shared_session = requests.Session()
 _shared_session.headers.update(HEADERS)
-_adapter = HTTPAdapter(pool_connections=10, pool_maxsize=20)
+_adapter = HTTPAdapter(pool_connections=10, pool_maxsize=20, pool_block=True)
 _shared_session.mount('https://', _adapter)
 _shared_session.mount('http://', _adapter)
 
