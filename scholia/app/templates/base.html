@@ -90,19 +90,18 @@ askQuery2("{{ sparql_endpoint }}", "{{ panel }}", `# tool: scholia
 <meta name="robots" content="nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="og:url" content="{{ 'https://scholia.toolforge.org' + request.path }}" />
-<meta name="og:site_name" content="Scholia" />
-<meta name="og:image" content="{{ url_for('static', filename='images/scholia_social_media.png') }}" />
+<meta name="og:url" content="{{ 'https://find-software-scholia-qlever.toolforge.org/' + request.path }}" />
+<meta name="og:site_name" content="find.software" />
+<meta name="og:image" content="{{ url_for('static', filename='images/find.software_transparent.png') }}" />
 
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="@WDScholia" />
+<meta name="fediverse:creator" content="@find_software@mas.to" />
 {% endblock metas %}
 
 
 {% block head %}
 {{super()}}
 
-<link rel="canonical" href="{{ 'https://scholia.toolforge.org' + request.path }}">
+<link rel="canonical" href="{{ 'https://find-software-scholia-qlever.toolforge.org/' + request.path }}">
 
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='jquery.dataTables.min.css') }}">
@@ -112,7 +111,7 @@ askQuery2("{{ sparql_endpoint }}", "{{ panel }}", `# tool: scholia
 
 {% endblock %}
 
-{% block title %}Scholia{% endblock %}
+{% block title %}find.software{% endblock %}
 
 {% block scripts %}
 {{super()}}
@@ -896,7 +895,7 @@ askQuery2("{{ sparql_endpoint }}", "{{ panel }}", `# tool: scholia
 {% block navbar %}
 <nav class="navbar navbar-expand-lg" style="max-width: 1200px;">
   <a class="navbar-brand" href="{{ url_for('app.index') }}"><img
-      src="{{ url_for('static', filename='images/find.software_logo_5.png') }}" width="40px" height="40px"
+      src="{{ url_for('static', filename='images/find.software_transparent.png') }}" height="40px"
       alt="Scholia"></a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
