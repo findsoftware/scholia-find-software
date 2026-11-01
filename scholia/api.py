@@ -147,7 +147,7 @@ def wb_get_entities(
     *,
     batch_size: int = 50,
     rate_limit: float = 2.0,
-    max_retries: int = 0,
+    max_retries: int = 3,
     timeout: int = 5,
     session: Optional[requests.Session] = None,
     **extra_params,
@@ -185,7 +185,9 @@ def wb_get_entities(
       HTTP 429/5xx, MediaWiki 'maxlag' or 'ratelimited' API errors, or internal
       errors.
     - Respects 'Retry-After' header when present.
-    - Sets MediaWiki 'maxlag' to be a good citizen.
+    - Sets MediaWiki 'maxlag' to be a good citizen. If the replicas are
+      still lagged on the last attempt, that attempt is sent without
+      'maxlag' so the read-only request is answered anyway.
 
     Examples
     --------
@@ -240,6 +242,8 @@ def wb_get_entities(
         params.update(extra_params)
 
         for attempt in range(max_retries + 1):
+            if attempt == max_retries and attempt > 0:
+                params.pop("maxlag", None)
             _sleep_until_allowed()
             try:
                 resp = sess.get(url, headers=HEADERS, params=params,
@@ -269,7 +273,13 @@ def wb_get_entities(
                             msg = (f"Wikidata API error after retries: "
                                    f"{code}: {info}")
                             raise RuntimeError(msg)
-                        _backoff_sleep(attempt)
+                        retry_after = None
+                        try:
+                            retry_after = float(
+                                resp.headers.get("Retry-After", ""))
+                        except ValueError:
+                            pass
+                        _backoff_sleep(attempt, retry_after=retry_after)
                         continue
 
                     # Non-retryable API errors
