@@ -11,7 +11,7 @@ from werkzeug.exceptions import ServiceUnavailable
 from werkzeug.routing import BaseConverter
 
 from ..api import (entity_to_classes, entity_to_name, entity_to_smiles, search,
-                   wb_get_entities)
+                   rest_entity_to_classes, wb_get_entities, wb_get_rest_entity)
 from ..rss import (wb_get_author_latest_works, wb_get_venue_latest_works,
                    wb_get_topic_latest_works, wb_get_organization_latest_works,
                    wb_get_sponsor_latest_works)
@@ -476,6 +476,7 @@ def backend():
         'sparql_endpoint_name', '')
     sparql_editurl = config['query-server'].get('sparql_editurl', '')
     sparql_embedurl = config['query-server'].get('sparql_embedurl', '')
+    rest_api_endpoint = config['query-server'].get('rest_api_endpoint', '')
 
     # Gather backend information
     data = {
@@ -484,6 +485,7 @@ def backend():
         'sparql_endpoint_name': sparql_endpoint_name,
         'sparql_editurl': sparql_editurl,
         'sparql_embedurl': sparql_embedurl,
+        'rest_api_endpoint': rest_api_endpoint,
         'text_to_topic_q_text_enabled': getattr(
             current_app, 'text_to_topic_q_text_enabled', False),
         'third_parties_enabled': getattr(
@@ -541,11 +543,11 @@ def redirect_q(q):
 
     """
     try:
-        # Use the API to get entity information
-        entities = wb_get_entities([q], max_retries=0, timeout=2.0)
+        # Use the REST API to get entity information
+        entity = wb_get_rest_entity(q, timeout=2.0)
 
         # Extract 'instance of' information
-        classes = entity_to_classes(entities[q])
+        classes = rest_entity_to_classes(entity)
 
         # match classes to aspect
         aspect = classes_to_aspect(classes)
