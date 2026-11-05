@@ -3,6 +3,22 @@ name: Python package
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
+  lint:
+    # Code style and docstring checks give the same result on every Python
+    # version, so they run once here instead of inside a test job.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Install Tox
+        run: pip install tox
+      - name: Run flake8 and pydocstyle
+        run: tox -e flake8,pydocstyle
+
   build:
 
     runs-on: ubuntu-latest
@@ -27,7 +43,6 @@ jobs:
       - name: Install Tox and any other packages
         run: pip install tox tox-gh-actions
       - name: Run Tox
-        # tox-gh-actions selects the environments for this Python version
-        # from the [gh-actions] section of tox.ini (flake8 and pydocstyle
-        # run on 3.10).
+        # tox-gh-actions selects the test environment for this Python
+        # version from the [gh-actions] section of tox.ini.
         run: tox
