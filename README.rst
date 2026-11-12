@@ -2,8 +2,8 @@
 
 |website| |gitpod| |github| |issues| |license| |docs|
 
-.. |logo| image:: scholia/app/static/favicon/favicon-light.svg
-   :width: 10%
+.. |logo| image:: scholia/app/static/images/find.software_wordmark.svg
+   :width: 340px
    :alt: find.software
 
 .. |website| image:: https://img.shields.io/website?url=https%3A%2F%2Ffind-software-scholia-qlever.toolforge.org%2F
