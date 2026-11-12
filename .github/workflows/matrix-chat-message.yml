@@ -15,4 +15,4 @@ jobs:
         homeserver: 'matrix.org'
         token: ${{ secrets.MATRIX_TOKEN }}
         channel: '!n8_c63gQIoLruHdzM6v3Dje5qAIiQpq3rtFbvcLMlJM' # '!GUiXMqCtxKlSZXLDdw:matrix.org'
-        message: "${{ github.event.sender.login }} created a pull request for ${{ github.event.repository.name }}: ${{ github.event.pull_request.title }} - ${{ repo.url }}"
+        message: "${{ github.event.sender.login }} created a pull request for ${{ github.event.repository.name }}: ${{ github.event.pull_request.title }} - ${{ GITHUB_ACTION_REPOSITORY }}"
