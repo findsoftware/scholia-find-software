@@ -1,28 +1,48 @@
 name: Python package
 
-on: [push, workflow_dispatch]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
+  lint:
+    # Code style and docstring checks give the same result on every Python
+    # version, so they run once here instead of inside a test job.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Install Tox
+        run: pip install tox
+      - name: Run flake8 and pydocstyle
+        run: tox -e flake8,pydocstyle
+
   build:
 
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
+      # The doctests query the public SPARQL endpoint, which rate-limits
+      # bursts of requests, so avoid running every version at once.
+      max-parallel: 2
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install lxml dependencies
-        run: sudo apt install libxml2-dev libxslt-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-dev libxslt-dev
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install Cython for lxml installation
-        run: pip install Cython
       - name: Install Tox and any other packages
         run: pip install tox tox-gh-actions
       - name: Run Tox
+        # tox-gh-actions selects the test environment for this Python
+        # version from the [gh-actions] section of tox.ini.
         run: tox
-      - name: Run flake8
-        run: tox -e flake8

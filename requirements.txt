@@ -4,6 +4,7 @@ Flask>=3.0.0
 Flask-Bootstrap
 lxml>=4.6.5
 requests>=2.32.2
+six
 werkzeug>=3.0.6
 certifi>=2022.12.7
 feedparser

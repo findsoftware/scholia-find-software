@@ -31,12 +31,11 @@ from os.path import exists, expanduser, join
 from six.moves import cPickle as pickle
 
 from .config import config
+from .query import http_session
 
 import re
 
 import json
-
-import requests
 
 
 SPARQL_ENDPOINT = config['query-server'].get('sparql_endpoint')
@@ -166,6 +165,11 @@ class TextToTopicQText():
         tokens = self.mapper.keys()
         tokens = sorted(tokens, key=len, reverse=True)
         tokens = [re.escape(token) for token in tokens if len(token) > 3]
+        if not tokens:
+            # No labels, e.g., the query service could not be reached.
+            # An empty alternation would match the empty string, so use a
+            # pattern that never matches instead.
+            tokens = [r'(?!x)x']
 
         regex = '(?:' + "|".join(tokens) + ')'
         regex = r"\b" + regex + r"\b"
@@ -196,7 +200,7 @@ class TextToTopicQText():
         If this also fails, then the method will raise an exception.
 
         """
-        response = requests.get(
+        response = http_session.get(
             SPARQL_ENDPOINT,
             params={'query': TOPIC_LABELS_SPARQL, 'format': 'json'},
             headers=self.headers)
@@ -206,7 +210,7 @@ class TextToTopicQText():
         except json.JSONDecodeError:
             # In some cases a timeout may occur in the middle of a response,
             # making the JSON returned invalid.
-            response = requests.get(
+            response = http_session.get(
                 SPARQL_ENDPOINT,
                 params={'query': TOPIC_LABELS_SPARQL, 'format': 'json'},
                 headers=self.headers)
