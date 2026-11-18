@@ -146,6 +146,7 @@ def wb_get_rest_entity(
     qs,
     timeout: int = 5,
     session: Optional[requests.Session] = None,
+    max_retries: int = 3,
 ):
     """Get single entity from Wikidata using REST API.
 
@@ -158,6 +159,9 @@ def wb_get_rest_entity(
     session : requests.Session or None, optional
         Reuse a session (recommended for many batches). If None, uses requests
         directly.
+    max_retries : int, optional
+        Max retry attempts on rate limiting (HTTP 429), server errors (5xx)
+        and network errors.
 
     Returns
     -------
@@ -167,6 +171,8 @@ def wb_get_rest_entity(
     Notes
     -----
     - Uses REST API and thus returns different data.
+    - Waits for the 'Retry-After' header (at most 30 seconds) or backs off
+      exponentially between retries.
 
     Examples
     --------
@@ -184,14 +190,28 @@ def wb_get_rest_entity(
     # Create/choose a session
     sess = session or _shared_session
 
-    try:
-        resp = sess.get(url + qs, headers=HEADERS, timeout=timeout)
+    for attempt in range(max_retries + 1):
+        try:
+            resp = sess.get(url + qs, headers=HEADERS, timeout=timeout)
+        except requests.RequestException as e:
+            if attempt >= max_retries:
+                raise RuntimeError("Network error from Wikidata") from e
+            time.sleep(0.75 * (2 ** attempt))
+            continue
+
         if resp.status_code == 200:
             return resp.json()
-        else:
-            raise RuntimeError(f"HTTP {resp.status_code} from Wikidata")
-    except Exception:
-        raise RuntimeError("Network error from Wikidata")
+
+        if (resp.status_code in (429, 500, 502, 503, 504)
+                and attempt < max_retries):
+            try:
+                delay = float(resp.headers.get("Retry-After", ""))
+            except ValueError:
+                delay = 0.75 * (2 ** attempt)
+            time.sleep(min(delay, 30.0))
+            continue
+
+        raise RuntimeError(f"HTTP {resp.status_code} from Wikidata")
 
 
 def wb_get_entities(
@@ -658,8 +678,8 @@ def rest_entity_to_name(entity, languages=None):
 
     Examples
     --------
-    >>> entity = wb_get_rest_entity('Q8219', ['en', 'mul'])
-    >>> name = rest_entity_to_name(entity)
+    >>> entity = wb_get_rest_entity('Q8219')
+    >>> name = rest_entity_to_name(entity, ['en', 'mul'])
     >>> name == 'Uta Frith'
     True
 
@@ -674,7 +694,7 @@ def rest_entity_to_name(entity, languages=None):
                 return labels[language]
 
         for label in labels.values():
-            return label['value']
+            return label
 
     return None
 
