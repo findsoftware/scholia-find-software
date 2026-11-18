@@ -1,0 +1,21 @@
+{% import 'sparql-helpers.sparql' as sparql_helpers -%}
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+# Scholarly works that cite (mention) the software item (P2860).
+SELECT ?publication_date ?work ?workLabel ?software ?softwareLabel ?softwareUrl WHERE {
+  {
+    SELECT ?datetime ?work ?software WHERE {
+      ?work wdt:P2860 ?software .
+      ?software wdt:P31/wdt:P279* wd:Q7397 .
+      ?work wdt:P31 wd:Q13442814 ;
+            wdt:P577 ?datetime .
+    }
+    ORDER BY DESC(?datetime)
+    LIMIT 500
+  }
+  BIND (xsd:date(?datetime) AS ?publication_date)
+  BIND (CONCAT("/software/", SUBSTR(STR(?software), 32)) AS ?softwareUrl)
+  {{ sparql_helpers.labels(["?work", "?software"], languages) }}
+}
+ORDER BY DESC(?publication_date)

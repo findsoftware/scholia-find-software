@@ -905,6 +905,7 @@ askQuery2("{{ sparql_endpoint }}", "{{ panel }}", `# tool: scholia
 
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
+	<li class="nav-item"><a class="nav-link" href="{{ url_for('app.show_software_index') }}">Software</a></li>
 	<li class="nav-item"><a class="nav-link" href="{{ url_for('app.show_author_index') }}">Author</a></li>
 	<li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle" href="#" id="workDropdown" role="button" data-toggle="dropdown"

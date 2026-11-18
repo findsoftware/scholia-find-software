@@ -1,0 +1,36 @@
+{% import 'sparql-helpers.sparql' as sparql_helpers -%}
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+# Algorithms connected to software through "uses" (P2283), "used by"
+# (P1535), "based on" (P144), "has use" (P366), "part of" (P361) and
+# "has part(s)" (P527).
+SELECT ?algorithm ?algorithmLabel ?algorithmUrl ?relation ?software ?softwareLabel ?softwareUrl ?graph ?graphUrl WHERE {
+  {
+    SELECT DISTINCT ?algorithm ?relation ?software WHERE {
+      ?algorithm wdt:P31/wdt:P279* wd:Q8366 .
+      {
+        { ?software wdt:P2283 ?algorithm . BIND("software uses algorithm" AS ?relation) }
+        UNION { ?software wdt:P144 ?algorithm . BIND("software based on algorithm" AS ?relation) }
+        UNION { ?software wdt:P366 ?algorithm . BIND("software has use" AS ?relation) }
+        UNION { ?software wdt:P361 ?algorithm . BIND("software part of algorithm" AS ?relation) }
+        UNION { ?algorithm wdt:P1535 ?software . BIND("algorithm used by software" AS ?relation) }
+        UNION { ?algorithm wdt:P144 ?software . BIND("algorithm based on software" AS ?relation) }
+        UNION { ?algorithm wdt:P527 ?software . BIND("algorithm has part software" AS ?relation) }
+      }
+      ?software wdt:P31/wdt:P279* wd:Q7397 .
+      FILTER (?software != ?algorithm)
+    }
+  }
+  BIND (CONCAT("/topic/", SUBSTR(STR(?algorithm), 32)) AS ?algorithmUrl)
+  BIND (CONCAT("/software/", SUBSTR(STR(?software), 32)) AS ?softwareUrl)
+  BIND ("show graph" AS ?graph)
+  BIND (CONCAT("#graph=", SUBSTR(STR(?algorithm), 32)) AS ?graphUrl)
+  # Fall back to the Wikidata identifier for items without a label
+  BIND (?algorithm AS ?algorithm_)
+  BIND (?software AS ?software_)
+  {{ sparql_helpers.labels(["?algorithm_", "?software_"], languages) }}
+  BIND (COALESCE(?algorithm_Label, SUBSTR(STR(?algorithm), 32)) AS ?algorithmLabel)
+  BIND (COALESCE(?software_Label, SUBSTR(STR(?software), 32)) AS ?softwareLabel)
+}
+ORDER BY ?algorithmLabel
+LIMIT 1000

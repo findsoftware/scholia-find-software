@@ -3,17 +3,50 @@
 {% set aspect = "software-index" %}
 {% block title %}Software - Scholia{% endblock %}
 
+{% block scripts %}
+{{ super() }}
+<script type="text/javascript" src="{{ url_for('static', filename='js/software-graph.js') }}"></script>
+{% endblock %}
+
 {% block in_ready %}
 
 {{ sparql_to_table('most-used-software') }}
+{{ sparql_to_table('algorithm-software') }}
+{{ sparql_to_table('works-describing') }}
+{{ sparql_to_table('works-described-in') }}
+{{ sparql_to_table('works-using') }}
+{{ sparql_to_table('works-citing') }}
+
+// Graph of entities connected to an algorithm or software.
+var softwareGraph = new SoftwareGraph(
+  "{{ sparql_endpoint }}", "#software-graph", "#software-graph-status");
+
+function showSoftwareGraphFromHash() {
+  var match = /^#graph=(Q[1-9]\d*)$/.exec(window.location.hash);
+  if (match) {
+    $("#software-graph-q").val(match[1]);
+    softwareGraph.show(match[1]);
+    document.getElementById("software-graph-section").scrollIntoView();
+  }
+}
+window.addEventListener("hashchange", showSoftwareGraphFromHash);
+showSoftwareGraphFromHash();
+
+$("#software-graph-form").on("submit", function (event) {
+  event.preventDefault();
+  var q = $("#software-graph-q").val().trim().toUpperCase();
+  if (/^Q[1-9]\d*$/.test(q)) {
+    window.location.hash = "graph=" + q;
+  }
+});
 
 {% endblock %}
 
 {% block page_content %}
 
-<h1><a href="../topic/Q7397">Softwares</a></h1>
+<h1><a href="../topic/Q7397">Software</a></h1>
 
-<h2>Examples</h2>
+<h2 id="examples">Software examples</h2>
 
 <ul>
   <li><a href="Q128228853">SaQC</a> (Software as Quality Control)</li>
@@ -32,13 +65,98 @@
 </ul>
  -->
 
-<h2>Overview</h2>
+<h2 id="most-used-software">Most used software in Wikidata</h2>
 
-<h3 id="most-used-software">Most used software</h3>
+<p>Software ranked by the number of works that describe a project using it
+(<a href="https://www.wikidata.org/wiki/Property:P4510">P4510</a>).</p>
 
 <table class="table table-hover" id="most-used-software-table"></table>
 
+<h2 id="algorithms">Algorithms connected to software</h2>
+
+<p>Algorithms linked to software through
+<a href="https://www.wikidata.org/wiki/Property:P2283">uses</a>,
+<a href="https://www.wikidata.org/wiki/Property:P1535">used by</a>,
+<a href="https://www.wikidata.org/wiki/Property:P144">based on</a>,
+<a href="https://www.wikidata.org/wiki/Property:P366">has use</a>,
+<a href="https://www.wikidata.org/wiki/Property:P361">part of</a> and
+<a href="https://www.wikidata.org/wiki/Property:P527">has part(s)</a>.</p>
+
+<div id="software-graph-section">
+  <h3 id="connected-entities">Connected entities graph</h3>
+
+  <p>Pick an example algorithm or software, or "show graph" in the table
+  below, to see its connected entities.</p>
+
+  <p>
+    Algorithms:
+    <a class="btn btn-sm btn-outline-secondary" href="#graph=Q190746">Advanced Encryption Standard</a>
+    <a class="btn btn-sm btn-outline-secondary" href="#graph=Q135035">Data Encryption Standard</a>
+    <a class="btn btn-sm btn-outline-secondary" href="#graph=Q110651361">SHA-256</a>
+    <a class="btn btn-sm btn-outline-secondary" href="#graph=Q232207">Monte Carlo method</a>
+    <a class="btn btn-sm btn-outline-secondary" href="#graph=Q7249984">Proof of work</a>
+  </p>
+  <p>
+    Software:
+    <a class="btn btn-sm btn-outline-secondary" href="#graph=Q15967387">Pandas</a>
+    <a class="btn btn-sm btn-outline-secondary" href="#graph=Q223679">GNU Octave</a>
+    <a class="btn btn-sm btn-outline-secondary" href="#graph=Q8074238">Zopfli</a>
+  </p>
+
+  <form id="software-graph-form" class="form-inline mb-2">
+    <input type="text" class="form-control form-control-sm mr-2" id="software-graph-q"
+           placeholder="Wikidata ID, e.g. Q190746" aria-label="Wikidata ID">
+    <button type="submit" class="btn btn-sm btn-outline-secondary">Show graph</button>
+  </form>
+
+  <p class="small">
+    <span style="color: #d95f02;">&#9679;</span> algorithm
+    <span style="color: #1b9e77;">&#9679;</span> software
+    <span style="color: #7570b3;">&#9679;</span> scholarly work
+    <span style="color: #999999;">&#9679;</span> other
+    &mdash; <span id="software-graph-status">No entity selected.</span>
+  </p>
+
+  <div id="software-graph" style="border: 1px solid #ddd; min-height: 60px;"></div>
+</div>
+
+<h3 id="algorithm-software">Algorithm and software relations</h3>
+
+<table class="table table-hover" id="algorithm-software-table"></table>
+
+<h2 id="research-works">Research works about software</h2>
+
+<p>Most recent scholarly articles connected to software, grouped by how
+they are connected in Wikidata.</p>
+
+<h3 id="works-describing">Describing software</h3>
+
+<p>Works with the software as
+<a href="https://www.wikidata.org/wiki/Property:P921">main subject</a>.</p>
+
+<table class="table table-hover" id="works-describing-table"></table>
+
+<h3 id="works-described-in">Software described in</h3>
+
+<p>Works given as
+<a href="https://www.wikidata.org/wiki/Property:P1343">described by source</a>
+on the software item.</p>
+
+<table class="table table-hover" id="works-described-in-table"></table>
+
+<h3 id="works-using">Software used in</h3>
+
+<p>Works that
+<a href="https://www.wikidata.org/wiki/Property:P4510">describe a project that uses</a>
+or <a href="https://www.wikidata.org/wiki/Property:P2283">use</a> the software.</p>
+
+<table class="table table-hover" id="works-using-table"></table>
+
+<h3 id="works-citing">Software mentioned in</h3>
+
+<p>Works that <a href="https://www.wikidata.org/wiki/Property:P2860">cite</a>
+the software item.</p>
+
+<table class="table table-hover" id="works-citing-table"></table>
 
 {% endblock %}
-
-  
