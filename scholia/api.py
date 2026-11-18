@@ -54,7 +54,7 @@ MONTH_NUMBER_TO_MONTH = {
 }
 
 
-def entity_to_smiles(entity):
+def rest_entity_to_smiles(entity):
     """Extract SMILES of a chemical.
 
     Parameters
@@ -69,22 +69,22 @@ def entity_to_smiles(entity):
 
     Examples
     --------
-    >>> entities = wb_get_entities(['Q48791494'])
-    >>> smiles = entity_to_smiles(entities['Q48791494'])
+    >>> entity = wb_get_rest_entity('Q48791494')
+    >>> smiles = rest_entity_to_smiles(entity)
     >>> smiles == 'CC(C)[C@H]1CC[C@@]2(CO2)[C@@H]3[C@@H]1C=C(COC3=O)C(=O)O'
     True
 
     """
-    for statement in entity['claims'].get('P2017', []):
-        smiles = statement['mainsnak']['datavalue']['value']
+    for statement in entity['statements'].get('P2017', []):
+        smiles = statement['value']['content']
         return smiles
 
-    for statement in entity['claims'].get('P233', []):
-        smiles = statement['mainsnak']['datavalue']['value']
+    for statement in entity['statements'].get('P233', []):
+        smiles = statement['value']['content']
         return smiles
 
-    for statement in entity['claims'].get('P10718', []):
-        smiles = statement['mainsnak']['datavalue']['value']
+    for statement in entity['statements'].get('P10718', []):
+        smiles = statement['value']['content']
         return smiles
 
     return ''
@@ -640,13 +640,16 @@ def entity_to_month(entity, language='en'):
     return None
 
 
-def entity_to_name(entity):
+def rest_entity_to_name(entity, languages=None):
     """Extract the name of the item.
 
     Parameters
     ----------
     entity : dict
-        Dictionary with Wikidata item representing a person.
+        Dictionary with Wikidata REST API item representing a person.
+
+    languages : list[str]
+        List of language code strings
 
     Returns
     -------
@@ -655,21 +658,24 @@ def entity_to_name(entity):
 
     Examples
     --------
-    >>> entities = wb_get_entities(['Q8219'])
-    >>> name = entity_to_name(list(entities.values())[0])
+    >>> entity = wb_get_rest_entity('Q8219', ['en', 'mul'])
+    >>> name = rest_entity_to_name(entity)
     >>> name == 'Uta Frith'
     True
 
     """
+    if languages is None:
+        languages = ['en', 'mul']
+
     if 'labels' in entity:
         labels = entity['labels']
-        if 'en' in labels:
-            return labels['en']['value']
-        elif 'mul' in labels:
-            return labels['mul']['value']
-        else:
-            for label in labels.values():
-                return label['value']
+        for language in languages:
+            if language in labels:
+                return labels[language]
+
+        for label in labels.values():
+            return label['value']
+
     return None
 
 
@@ -838,15 +844,15 @@ def main():
 
     elif arguments['q-to-classes']:
         q = arguments['<q>']
-        entities = wb_get_entities([q])
-        classes = entity_to_classes(entities[q])
+        entity = wb_get_rest_entity(q)
+        classes = rest_entity_to_classes(entity)
         for class_ in classes:
             print(class_)
 
     elif arguments['q-to-name']:
         q = arguments['<q>']
-        entities = wb_get_entities([q])
-        print(entity_to_name(entities[q]))
+        entity = wb_get_rest_entity(q)
+        print(rest_entity_to_name(entity))
 
     elif arguments['search']:
         query = arguments['<query>']
