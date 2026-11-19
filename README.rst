@@ -81,7 +81,7 @@ Contributing
 
 A simple way to get up and running is to `launch find.software via Gitpod`_, which installs the dependencies listed in `requirements.txt`_ automatically and launches the web app via `runserver.py`_.
 
-See file `CONTRIBUTING.rst`_ for technical details on contributing to the underlying Scholia application.
+See file `CONTRIBUTING.rst`_ for technical details on contributing to find.software.
 
 .. _Wikidata: https://www.wikidata.org
 .. _Wikimedia Foundation: https://wikimediafoundation.org
