@@ -142,12 +142,64 @@ def select_value_by_language_preferences(
     return next(iter(choices.values()))
 
 
+def wb_get_rest_entity(
+    qs,
+    timeout: int = 5,
+    session: Optional[requests.Session] = None,
+):
+    """Get single entity from Wikidata using REST API.
+
+    Parameters
+    ----------
+    qs : str
+        Wikidata entity IDs (e.g., "Q42", "Q1", ...).
+    timeout : int, optional
+        Per-request timeout in seconds.
+    session : requests.Session or None, optional
+        Reuse a session (recommended for many batches). If None, uses requests
+        directly.
+
+    Returns
+    -------
+    dict
+        Mapping from entity ID to entity data as returned by Wikidata.
+
+    Notes
+    -----
+    - Uses REST API and thus returns different data.
+
+    Examples
+    --------
+    >>> out = wb_get_rest_entity("Q42")
+    >>> isinstance(out, dict)
+    True
+
+    """
+    if not qs:
+        return {}
+
+    url = (config['query-server'].get('rest_api_endpoint')
+           + "/wikibase/v1/entities/items/")
+
+    # Create/choose a session
+    sess = session or _shared_session
+
+    try:
+        resp = sess.get(url + qs, headers=HEADERS, timeout=timeout)
+        if resp.status_code == 200:
+            return resp.json()
+        else:
+            raise RuntimeError(f"HTTP {resp.status_code} from Wikidata")
+    except Exception:
+        raise RuntimeError("Network error from Wikidata")
+
+
 def wb_get_entities(
     qs,
     *,
     batch_size: int = 50,
     rate_limit: float = 2.0,
-    max_retries: int = 0,
+    max_retries: int = 3,
     timeout: int = 5,
     session: Optional[requests.Session] = None,
     **extra_params,
@@ -185,7 +237,9 @@ def wb_get_entities(
       HTTP 429/5xx, MediaWiki 'maxlag' or 'ratelimited' API errors, or internal
       errors.
     - Respects 'Retry-After' header when present.
-    - Sets MediaWiki 'maxlag' to be a good citizen.
+    - Sets MediaWiki 'maxlag' to be a good citizen. If the replicas are
+      still lagged on the last attempt, that attempt is sent without
+      'maxlag' so the read-only request is answered anyway.
 
     Examples
     --------
@@ -240,6 +294,8 @@ def wb_get_entities(
         params.update(extra_params)
 
         for attempt in range(max_retries + 1):
+            if attempt == max_retries and attempt > 0:
+                params.pop("maxlag", None)
             _sleep_until_allowed()
             try:
                 resp = sess.get(url, headers=HEADERS, params=params,
@@ -269,7 +325,13 @@ def wb_get_entities(
                             msg = (f"Wikidata API error after retries: "
                                    f"{code}: {info}")
                             raise RuntimeError(msg)
-                        _backoff_sleep(attempt)
+                        retry_after = None
+                        try:
+                            retry_after = float(
+                                resp.headers.get("Retry-After", ""))
+                        except ValueError:
+                            pass
+                        _backoff_sleep(attempt, retry_after=retry_after)
                         continue
 
                     # Non-retryable API errors
@@ -406,6 +468,33 @@ def entity_to_classes(entity):
     classes = []
     for statement in entity['claims'].get('P31', []):
         classes.append(statement['mainsnak']['datavalue']['value']['id'])
+    return classes
+
+
+def rest_entity_to_classes(entity):
+    """Extract 'instance_of' classes.
+
+    Parameters
+    ----------
+    entity : dict
+        Dictionary with Wikidata REST API item
+
+    Returns
+    -------
+    classes : list of str
+        List of strings.
+
+    Examples
+    --------
+    >>> entity = wb_get_rest_entity('Q28133147')
+    >>> classes = rest_entity_to_classes(entity)
+    >>> 'Q13442814' in classes
+    True
+
+    """
+    classes = []
+    for statement in entity['statements'].get('P31', []):
+        classes.append(statement['value']['content'])
     return classes
 
 
