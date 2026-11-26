@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% set aspect = "programming-language-index" %}
+{% block title %}Programming languages - Scholia{% endblock %}
+
+{% block in_ready %}
+
+{{ sparql_to_table('languages') }}
+
+{% endblock %}
+
+{% block page_content %}
+
+<h1><a href="../topic/Q9143">Programming languages</a></h1>
+
+<h2>Examples</h2>
+
+<ul>
+  <li><a href="Q28865">Python</a></li>
+  <li><a href="Q206904">R</a></li>
+  <li><a href="Q2407">C++</a></li>
+  <li><a href="Q15777">C</a></li>
+  <li><a href="Q83303">Fortran</a></li>
+  <li><a href="Q2613697">Julia</a></li>
+  <li><a href="Q169478">MATLAB</a></li>
+  <li><a href="Q251">Java</a></li>
+  <li><a href="Q575650">Rust</a></li>
+</ul>
+
+<h2>Overview</h2>
+
+<h3 id="languages">Programming languages in Wikidata</h3>
+
+<table class="table table-hover" id="languages-table"></table>
+
+{% endblock %}

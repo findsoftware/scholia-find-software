@@ -1,0 +1,19 @@
+{% import 'sparql-helpers.sparql' as sparql_helpers -%}
+#description: Publications describing projects that use the programming language (P4510)
+PREFIX target: <http://www.wikidata.org/entity/{{ q }}>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?publication_date ?work ?workLabel WHERE {
+  {
+    SELECT ?work (MIN(?publication_datetime) AS ?publication_datetime_) WHERE {
+      ?work wdt:P4510 target: ;
+            wdt:P577 ?publication_datetime .
+    }
+    GROUP BY ?work
+    ORDER BY DESC(?publication_datetime_)
+    LIMIT 500
+  }
+  BIND (xsd:date(?publication_datetime_) AS ?publication_date)
+  {{ sparql_helpers.labels(["?work"], languages) }}
+}
+ORDER BY DESC(?publication_date)

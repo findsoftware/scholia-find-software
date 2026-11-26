@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% set aspect = "programming-language" %}
+
+{% block in_ready %}
+
+{{ sparql_to_table('data', options={'paging': False}) }}
+{{ sparql_to_table('software') }}
+{{ sparql_to_table('supporting-tools') }}
+{{ sparql_to_iframe('related-languages') }}
+{{ sparql_to_table('works-about') }}
+{{ sparql_to_table('works-using') }}
+{{ sparql_to_table('venues') }}
+
+{% endblock %}
+
+{% block page_content %}
+
+<h1 id="h1">Programming language</h1>
+
+<div id="intro"></div>
+
+<table class="table table-hover" id="data-table"></table>
+
+<h2 id="software">Software developed in the language</h2>
+
+<table class="table table-hover" id="software-table"></table>
+
+<h2 id="supporting-tools">Tools supporting the language</h2>
+
+<p class="text-muted">Based on Wikidata's "supports programming language" (P3985) property. Coverage is incomplete for many languages.</p>
+
+<table class="table table-hover" id="supporting-tools-table"></table>
+
+<h2 id="related-languages">Related programming languages</h2>
+
+<p class="text-muted">Languages that influenced or were influenced by this language (P737).</p>
+
+<div class="embed-responsive embed-responsive-4by3">
+  <iframe class="embed-responsive-item" id="related-languages-iframe"></iframe>
+</div>
+
+<h2 id="research-work">Research work</h2>
+
+<h3 id="works-about">Publications about the language</h3>
+
+<table class="table table-hover" id="works-about-table"></table>
+
+<h3 id="works-using">Publications describing projects that use the language</h3>
+
+<table class="table table-hover" id="works-using-table"></table>
+
+<h3 id="venues">Venues</h3>
+
+<table class="table table-hover" id="venues-table"></table>
+
+{% endblock %}

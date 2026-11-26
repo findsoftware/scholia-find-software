@@ -1,0 +1,25 @@
+PREFIX target: <http://www.wikidata.org/entity/{{ q }}>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+# TODO: add Developers (P178), Inception (P571), Typing discipline (P7078),
+# Dialect of (P8131), License (P275), Repository (P1324)
+SELECT DISTINCT ?description ?value ?valueUrl WHERE {
+  {
+    SELECT (1 AS ?order) ("Paradigms" AS ?description) (GROUP_CONCAT(?value_; SEPARATOR=", ") AS ?value) (CONCAT("../topics/", GROUP_CONCAT(?q; SEPARATOR=",")) AS ?valueUrl) {
+      BIND (1 AS ?dummy)
+      target: wdt:P3966 ?iri .
+      BIND (SUBSTR(STR(?iri),32) AS ?q)
+      ?iri rdfs:label ?value_string .
+      FILTER (LANG(?value_string) = 'en')
+      BIND (COALESCE(?value_string, ?q) AS ?value_)
+    }
+    GROUP BY ?dummy
+  }
+  UNION {
+    BIND (11 AS ?order)
+    BIND ("Homepage" AS ?description)
+    target: wdt:P856 ?valueUrl .
+    BIND (STR(?valueUrl) AS ?value)
+  }
+}
+ORDER BY ?order

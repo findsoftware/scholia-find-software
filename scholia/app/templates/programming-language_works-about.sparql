@@ -1,0 +1,23 @@
+{% import 'sparql-helpers.sparql' as sparql_helpers -%}
+#description: Publications with the programming language as main subject
+# TODO: refine filtering (e.g., wdt:P31/wdt:P279* wd:Q386724)
+PREFIX target: <http://www.wikidata.org/entity/{{ q }}>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?publication_date ?work ?workLabel WHERE {
+  {
+    SELECT ?work (MIN(?publication_datetime) AS ?publication_datetime_) WHERE {
+      ?work wdt:P921 target: ;
+            wdt:P577 ?publication_datetime .
+      # exclude events such as conferences
+      MINUS { ?work wdt:P31/wdt:P279* wd:Q1656682 }
+    }
+    GROUP BY ?work
+    ORDER BY DESC(?publication_datetime_)
+    LIMIT 500
+  }
+  BIND (xsd:date(?publication_datetime_) AS ?publication_date)
+  {{ sparql_helpers.labels(["?work"], languages) }}
+}
+ORDER BY DESC(?publication_date)

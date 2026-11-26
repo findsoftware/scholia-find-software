@@ -1,0 +1,20 @@
+{% import 'sparql-helpers.sparql' as sparql_helpers -%}
+#description: Programming languages influenced by / influencing the language (P737)
+# TODO: consider optional 1-hop dialect (P8131) edges
+PREFIX target: <http://www.wikidata.org/entity/{{ q }}>
+#defaultView:Graph
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT ?lang1 ?lang1Label ?rgb ?lang2 ?lang2Label WHERE {
+  {
+    # languages that influenced the target
+    BIND (target: AS ?lang1)
+    BIND ("3080BB" AS ?rgb)
+    target: wdt:P737 ?lang2 .
+  }
+  UNION {
+    # languages influenced by the target
+    ?lang1 wdt:P737 target: .
+    BIND (target: AS ?lang2)
+  }
+  {{ sparql_helpers.labels(["?lang1", "?lang2"], languages) }}
+}

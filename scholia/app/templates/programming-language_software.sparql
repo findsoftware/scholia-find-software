@@ -1,0 +1,13 @@
+{% import 'sparql-helpers.sparql' as sparql_helpers -%}
+#description: Software developed in the programming language
+# TODO: add type (P31), license (P275) and count of works using the software (^P4510)
+PREFIX target: <http://www.wikidata.org/entity/{{ q }}>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT DISTINCT ?software ?softwareLabel ?softwareUrl WHERE {
+  ?software wdt:P277 target: ;
+            wdt:P31/wdt:P279* wd:Q7397 .
+  BIND (CONCAT("/software/", SUBSTR(STR(?software), 32)) AS ?softwareUrl)
+  {{ sparql_helpers.labels(["?software"], languages) }}
+}
+LIMIT 500

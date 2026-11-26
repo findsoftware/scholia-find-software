@@ -1,0 +1,20 @@
+{% import 'sparql-helpers.sparql' as sparql_helpers -%}
+#description: Venues publishing works about (P921) or using (P4510) the programming language
+#defaultView:Table
+PREFIX target: <http://www.wikidata.org/entity/{{ q }}>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT ?count ?short_name ?venue ?venueLabel (CONCAT("/venue/", SUBSTR(STR(?venue),32)) AS ?venueUrl) WHERE {
+  {
+    SELECT (COUNT(DISTINCT ?work) AS ?count) ?venue (SAMPLE(?short_name_) AS ?short_name) WHERE {
+      ?work wdt:P921 | wdt:P4510 target: .
+      ?work wdt:P1433 ?venue .
+      OPTIONAL {
+        ?venue wdt:P1813 ?short_name_ .
+      }
+    }
+    GROUP BY ?venue
+  }
+  {{ sparql_helpers.labels(["?venue"], languages) }}
+}
+ORDER BY DESC(?count)
+LIMIT 200

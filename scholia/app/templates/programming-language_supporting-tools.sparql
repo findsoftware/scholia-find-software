@@ -1,0 +1,11 @@
+{% import 'sparql-helpers.sparql' as sparql_helpers -%}
+#description: Software and tools supporting the programming language
+# TODO: add description and P31 type, link to /software/ only for Q7397* items
+PREFIX target: <http://www.wikidata.org/entity/{{ q }}>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT DISTINCT ?tool ?toolLabel ?toolUrl WHERE {
+  ?tool wdt:P3985 target: .
+  BIND (CONCAT("/software/", SUBSTR(STR(?tool), 32)) AS ?toolUrl)
+  {{ sparql_helpers.labels(["?tool"], languages) }}
+}
+LIMIT 500

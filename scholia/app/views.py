@@ -2395,6 +2395,47 @@ def show_q_to_bibliography_templates():
                            sparql_editURL=editurl, sparql_embedURL=embedurl)
 
 
+@main.route('/programming-language/' + q_pattern)
+def show_programming_language(q):
+    """Return HTML rendering for specific programming language.
+
+    Parameters
+    ----------
+    q : str
+        Wikidata item identifier.
+
+    Returns
+    -------
+    html : str
+        Rendered HTML.
+
+    """
+    ep = config['query-server'].get('sparql_endpoint')
+    editurl = config['query-server'].get('sparql_editurl')
+    embedurl = config['query-server'].get('sparql_embedurl')
+    return render_template('programming-language.html', q=q,
+                           sparql_endpoint=ep,
+                           sparql_editURL=editurl, sparql_embedURL=embedurl)
+
+
+@main.route('/programming-language/')
+def show_programming_language_index():
+    """Return programming language index page.
+
+    Returns
+    -------
+    html : str
+        Rendered index page for programming language view.
+
+    """
+    ep = config['query-server'].get('sparql_endpoint')
+    editurl = config['query-server'].get('sparql_editurl')
+    embedurl = config['query-server'].get('sparql_embedurl')
+    return render_template('programming-language-index.html',
+                           sparql_endpoint=ep,
+                           sparql_editURL=editurl, sparql_embedURL=embedurl)
+
+
 @main.route('/software/' + q_pattern)
 def show_software(q):
     """Return HTML rendering for specific software.

@@ -555,6 +555,8 @@ askQuery2("{{ sparql_endpoint }}", "{{ panel }}", `# tool: scholia
     UNION 
     { [] wdt:P872 wd:{{ q }} . BIND("printer" AS ?aspect) }
     UNION
+    { wd:{{ q }} wdt:P31 / wdt:P279* wd:Q9143 . BIND("programming-language" AS ?aspect) }
+    UNION
     { wd:{{ q }} wdt:P31 wd:Q8054 . BIND("protein" AS ?aspect) }
     UNION
     { [] wdt:P123 wd:{{ q }} . BIND("publisher" AS ?aspect) }
@@ -982,6 +984,7 @@ askQuery2("{{ sparql_endpoint }}", "{{ panel }}", `# tool: scholia
       <a class="dropdown-item" href="{{ url_for('app.show_chemical_class_index') }}">Chemical class</a>
       <a class="dropdown-item" href="{{ url_for('app.show_lexeme_index') }}">Lexeme</a>
       <a class="dropdown-item" href="{{ url_for('app.show_ontology_index') }}">Ontology</a>
+      <a class="dropdown-item" href="{{ url_for('app.show_programming_language_index') }}">Programming language</a>
       <a class="dropdown-item" href="{{ url_for('app.show_software_index') }}">Software</a>
       <a class="dropdown-item" href="{{ url_for('app.show_use_index') }}">Use</a>
     </div>

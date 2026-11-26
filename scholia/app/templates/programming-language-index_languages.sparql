@@ -1,0 +1,18 @@
+{% import 'sparql-helpers.sparql' as sparql_helpers -%}
+#description: Programming languages ranked by number of software items in Wikidata
+# TODO: add counts of supporting tools (^P3985) and works (^P921 / ^P4510)
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT ?software_count ?lang ?langLabel ?langUrl WHERE {
+  {
+    SELECT ?lang (COUNT(DISTINCT ?software) AS ?software_count) WHERE {
+      ?software wdt:P277 ?lang .
+      ?lang wdt:P31/wdt:P279* wd:Q9143 .
+    }
+    GROUP BY ?lang
+  }
+  BIND (CONCAT("/programming-language/", SUBSTR(STR(?lang), 32)) AS ?langUrl)
+  {{ sparql_helpers.labels(["?lang"], languages) }}
+}
+ORDER BY DESC(?software_count)
+LIMIT 500
